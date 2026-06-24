@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Loket Antrian</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Simulasi Loket Antrian</h1>
+
+    <!-- Form Daftar -->
+    <section class="card">
+        <h2>Daftar Antrian</h2>
+        <form action="/daftar" method="POST">
+            <input type="text" name="nama" placeholder="Nama pelanggan..." required maxlength="50">
+            <button type="submit">Ambil Nomor</button>
+        </form>
+    </section>
+
+    <!-- Sedang Dilayani — Stack.peek() -->
+    <section class="card card-serving">
+        <h2>Sedang Dilayani <span class="badge">Stack — top</span></h2>
+        {% if sedang_dilayani %}
+            <div class="serving-display">
+                <span class="nomor">{{ sedang_dilayani.nomor_antrian }}</span>
+                <span class="nama">{{ sedang_dilayani.nama_pelanggan }}</span>
+            </div>
+        {% else %}
+            <p class="empty">Belum ada yang dipanggil</p>
+        {% endif %}
+    </section>
+
+    <!-- Antrian Menunggu — Queue -->
+    <section class="card">
+        <h2>
+            Antrian Menunggu
+            <span class="badge">Queue — FIFO</span>
+            <span class="count">{{ jumlah_antrian }} orang</span>
+        </h2>
+
+        <form action="/panggil" method="POST">
+            <button type="submit" {% if jumlah_antrian == 0 %}disabled{% endif %}>
+                Panggil Berikutnya
+            </button>
+        </form>
+
+        {% if antrian %}
+            <ol class="queue-list">
+                {% for item in antrian %}
+                <li {% if loop.first %}class="next"{% endif %}>
+                    <span class="nomor">{{ item.nomor_antrian }}</span>
+                    <span class="nama">{{ item.nama_pelanggan }}</span>
+                    {% if loop.first %}<span class="tag">← dipanggil berikutnya</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p class="empty">Antrian kosong</p>
+        {% endif %}
+    </section>
+
+    <!-- Riwayat Pelayanan — Linked List -->
+    <section class="card">
+        <h2>Riwayat Pelayanan <span class="badge">Linked List — head→tail</span></h2>
+        {% if riwayat %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. Antrian</th>
+                        <th>Nama</th>
+                        <th>Waktu Dilayani</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in riwayat %}
+                    <tr>
+                        <td>{{ item.nomor_antrian }}</td>
+                        <td>{{ item.nama_pelanggan }}</td>
+                        <td>{{ item.get('waktu_dilayani', '-') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty">Belum ada riwayat pelayanan</p>
+        {% endif %}
+    </section>
+
+    <!-- Reset -->
+    <section class="card card-reset">
+        <form action="/reset" method="POST"
+              onsubmit="return confirm('Reset semua data simulasi?')">
+            <button type="submit" class="btn-reset">Reset Simulasi</button>
+        </form>
+    </section>
+</div>
+</body>
+</html>
