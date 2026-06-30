@@ -7,6 +7,7 @@ from connect_db import get_connection
 antrian_queue = Queue()
 riwayat_stack = Stack()
 riwayat_linked_list = LinkedList()
+sedang_dilayani_aktif = None  # Pelanggan yang saat ini sedang dilayani
 
 
 def load_from_db():
@@ -73,14 +74,17 @@ def panggil_antrian():
     """
     Panggil pelanggan berikutnya:
     1. Dequeue dari Queue
-    2. Push ke Stack (→ ditampilkan sebagai 'Sedang Dilayani')
-    3. Append ke Linked List (→ riwayat kronologis)
+    2. Set sedang_dilayani_aktif
+    3. Push ke Stack + Append ke Linked List (→ riwayat)
     4. DELETE dari antrian, INSERT ke riwayat_pelayanan
     """
+    global sedang_dilayani_aktif
+
     if antrian_queue.is_empty():
         return None
 
     customer = antrian_queue.dequeue()
+    sedang_dilayani_aktif = customer
 
     riwayat_stack.push(customer)
     riwayat_linked_list.append(customer)
@@ -95,9 +99,22 @@ def panggil_antrian():
         (customer['nomor_antrian'], customer['nama_pelanggan'], customer.get('waktu_daftar'))
     )
     conn.commit()
+
+    row = conn.execute(
+        "SELECT waktu_dilayani FROM riwayat_pelayanan WHERE nomor_antrian = ?",
+        (customer['nomor_antrian'],)
+    ).fetchone()
+    customer['waktu_dilayani'] = row['waktu_dilayani'] if row else None
+
     conn.close()
 
     return customer
+
+
+def selesai_layanan():
+    """Tandai pelayanan selesai tanpa memanggil pelanggan berikutnya."""
+    global sedang_dilayani_aktif
+    sedang_dilayani_aktif = None
 
 
 def get_state():
@@ -105,20 +122,35 @@ def get_state():
     return {
         'antrian': antrian_queue.to_list(),
         'jumlah_antrian': antrian_queue.size(),
-        'sedang_dilayani': riwayat_stack.peek(),   # Top of Stack 
+        'sedang_dilayani': sedang_dilayani_aktif,
         'riwayat': list(reversed(riwayat_linked_list.to_list())),  # New on Top
     }
 
 
 def reset_simulasi():
     """Reset semua data (untuk keperluan simulasi / demo ulang)."""
-    global antrian_queue, riwayat_stack, riwayat_linked_list
+    global antrian_queue, riwayat_stack, riwayat_linked_list, sedang_dilayani_aktif
     antrian_queue = Queue()
     riwayat_stack = Stack()
     riwayat_linked_list = LinkedList()
+    sedang_dilayani_aktif = None
 
     conn = get_connection()
     conn.execute("DELETE FROM antrian")
     conn.execute("DELETE FROM riwayat_pelayanan")
     conn.commit()
     conn.close()
+
+
+def get_laporan_harian():
+    """Ambil laporan jumlah pelanggan yang dilayani per hari dari DB."""
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT DATE(waktu_dilayani) AS tanggal,
+               COUNT(*) AS jumlah_dilayani
+        FROM riwayat_pelayanan
+        GROUP BY DATE(waktu_dilayani)
+        ORDER BY tanggal DESC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]

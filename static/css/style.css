@@ -134,6 +134,8 @@ button:disabled{
 }
 .btn-reset{background:var(--danger);width:220px}
 .btn-reset:hover{background:var(--danger-dark)}
+.btn-selesai{background:#16a34a}
+.btn-selesai:hover{background:#15803d}
 
 .serving-panel{
     display:flex;
@@ -210,6 +212,24 @@ tbody tr:hover{background:#eef5ff}
 .reset-area{
     display:flex;
     justify-content:flex-end;
+    align-items:center;
+    gap:16px;
+}
+.btn-laporan{
+    display:inline-block;
+    padding:15px 24px;
+    border-radius:12px;
+    background:#fff;
+    color:var(--primary);
+    border:2px solid var(--primary);
+    font-weight:600;
+    font-size:.95rem;
+    text-decoration:none;
+    transition:var(--transition);
+}
+.btn-laporan:hover{
+    background:var(--primary);
+    color:#fff;
 }
 
 ::-webkit-scrollbar{width:10px}

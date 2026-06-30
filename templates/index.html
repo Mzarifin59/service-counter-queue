@@ -169,13 +169,23 @@
 
                 {% endif %}
 
-                <form action="/panggil" method="POST">
+                {% if sedang_dilayani and jumlah_antrian == 0 %}
 
-                    <button {% if jumlah_antrian == 0 %}disabled{% endif %}>
-                        Panggil Berikutnya
-                    </button>
+                    <form action="/selesai" method="POST">
+                        <button class="btn-selesai">
+                            Selesaikan Pelayanan
+                        </button>
+                    </form>
 
-                </form>
+                {% else %}
+
+                    <form action="/panggil" method="POST">
+                        <button {% if jumlah_antrian == 0 %}disabled{% endif %}>
+                            Panggil Berikutnya
+                        </button>
+                    </form>
+
+                {% endif %}
 
             </section>
 
@@ -220,6 +230,10 @@
     <!-- ================= RESET ================= -->
 
     <section class="reset-area">
+
+        <a href="{{ url_for('laporan') }}" class="btn-laporan">
+            Lihat Laporan Harian
+        </a>
 
         <form
             action="/reset"

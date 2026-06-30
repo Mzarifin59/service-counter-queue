@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Harian - Loket Antrian</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .laporan-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        .back-link:hover { color: var(--primary-dark); }
+        .laporan-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .empty-laporan {
+            text-align: center;
+            color: #94a3b8;
+            padding: 60px 0;
+            font-size: 1rem;
+        }
+        @media (max-width: 768px) {
+            .laporan-summary { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="main-content">
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header">
+        <div>
+            <a href="{{ url_for('index') }}" class="back-link">&#8592; Kembali ke Simulasi</a>
+            <h1>Laporan Harian</h1>
+            <p>Jumlah Pelanggan yang Dilayani per Hari</p>
+        </div>
+    </header>
+
+    <!-- ================= RINGKASAN ================= -->
+
+    <section class="laporan-summary">
+
+        <div class="stat-card">
+            <h4>Total Hari Beroperasi</h4>
+            <span>{{ laporan|length }}</span>
+        </div>
+
+        <div class="stat-card">
+            <h4>Total Pelanggan Dilayani</h4>
+            <span>{{ total }}</span>
+        </div>
+
+    </section>
+
+    <!-- ================= TABEL LAPORAN ================= -->
+
+    <section class="panel">
+
+        <h2>📊 Rincian per Hari</h2>
+
+        {% if laporan %}
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tanggal</th>
+                        <th>Jumlah Dilayani</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in laporan %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ row.tanggal }}</td>
+                            <td><span class="laporan-badge">{{ row.jumlah_dilayani }} pelanggan</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% else %}
+
+            <p class="empty-laporan">
+                Belum ada data pelayanan.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+</body>
+</html>
