@@ -4,97 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulasi Loket Antrian</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-<div class="container">
-    <h1>Simulasi Loket Antrian</h1>
 
-    <!-- Form Daftar -->
-    <section class="card">
-        <h2>Daftar Antrian</h2>
-        <form action="/daftar" method="POST">
-            <input type="text" name="nama" placeholder="Nama pelanggan..." required maxlength="50">
-            <button type="submit">Ambil Nomor</button>
-        </form>
+<main class="main-content">
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header">
+        <div>
+            <h1>SIMULASI LOKET ANTRIAN</h1>
+            <p>Sistem Simulasi Queue • Stack • Linked List</p>
+        </div>
+
+        <div class="clock" id="clock">
+            00:00:00
+        </div>
+    </header>
+
+    <!-- ================= STATISTIK ================= -->
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <h4>Total Antrian</h4>
+            <span>{{ jumlah_antrian }}</span>
+        </div>
+
+        <div class="stat-card">
+            <h4>Menunggu</h4>
+            <span>{{ jumlah_antrian }}</span>
+        </div>
+
+        <div class="stat-card">
+            <h4>Sedang Dilayani</h4>
+
+            {% if sedang_dilayani %}
+                <span>{{ sedang_dilayani.nomor_antrian }}</span>
+            {% else %}
+                <span>-</span>
+            {% endif %}
+
+        </div>
+
+        <div class="stat-card">
+            <h4>Riwayat</h4>
+            <span>{{ riwayat|length }}</span>
+        </div>
+
     </section>
 
-    <!-- Sedang Dilayani — Stack.peek() -->
-    <section class="card card-serving">
-        <h2>Sedang Dilayani <span class="badge">Stack — top</span></h2>
-        {% if sedang_dilayani %}
-            <div class="serving-display">
-                <span class="nomor">{{ sedang_dilayani.nomor_antrian }}</span>
-                <span class="nama">{{ sedang_dilayani.nama_pelanggan }}</span>
-            </div>
-        {% else %}
-            <p class="empty">Belum ada yang dipanggil</p>
-        {% endif %}
-    </section>
+    <!-- ================= CONTENT ================= -->
 
-    <!-- Antrian Menunggu — Queue -->
-    <section class="card">
-        <h2>
-            Antrian Menunggu
-            <span class="badge">Queue — FIFO</span>
-            <span class="count">{{ jumlah_antrian }} orang</span>
-        </h2>
+    <div class="content-grid">
 
-        <form action="/panggil" method="POST">
-            <button type="submit" {% if jumlah_antrian == 0 %}disabled{% endif %}>
-                Panggil Berikutnya
+        <!-- ===== LEFT PANEL ===== -->
+
+        <div class="left-panel">
+
+            <!-- Form Daftar -->
+
+            <section class="panel">
+
+                <h2>📝 Daftar Antrian</h2>
+
+                <form action="/daftar" method="POST">
+
+                    <input
+                        type="text"
+                        name="nama"
+                        placeholder="Masukkan Nama..."
+                        required
+                    >
+
+                    <button>
+                        Ambil Nomor
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- List Antrian -->
+
+            <section class="panel">
+
+                <h2>📋 Daftar Antrian</h2>
+
+                <ul class="queue-list">
+
+                    {% if antrian %}
+
+                        {% for item in antrian[:5] %}
+
+                            <li {% if loop.first %}class="next"{% endif %}>
+
+                                <div>
+                                    <strong>{{ item.nomor_antrian }}</strong>
+                                    {{ item.nama_pelanggan }}
+                                </div>
+
+                                {% if loop.first %}
+
+                                    <span>Berikutnya</span>
+
+                                {% else %}
+
+                                    <span class="tag">
+                                        {{ loop.index0 + 1 }} antrean lagi
+                                    </span>
+
+                                {% endif %}
+
+                            </li>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <p class="empty">
+                            Antrian kosong
+                        </p>
+
+                    {% endif %}
+
+                </ul>
+
+            </section>
+
+        </div>
+
+        <!-- ===== RIGHT PANEL ===== -->
+
+        <div class="right-panel">
+
+            <!-- Sedang Dilayani -->
+
+            <section class="panel serving-panel">
+
+                <h2>🔔 Sedang Dilayani</h2>
+
+                {% if sedang_dilayani %}
+
+                    <div class="serving-display">
+
+                        <div class="nomor">
+                            {{ sedang_dilayani.nomor_antrian }}
+                        </div>
+
+                        <div class="nama">
+                            {{ sedang_dilayani.nama_pelanggan }}
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="empty">
+                        Belum ada pelanggan
+                    </p>
+
+                {% endif %}
+
+                <form action="/panggil" method="POST">
+
+                    <button {% if jumlah_antrian == 0 %}disabled{% endif %}>
+                        Panggil Berikutnya
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- Riwayat -->
+
+            <section class="panel">
+
+                <h2>📚 Riwayat Pelayanan</h2>
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Waktu</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in riwayat %}
+
+                            <tr>
+                                <td>{{ item.nomor_antrian }}</td>
+                                <td>{{ item.nama_pelanggan }}</td>
+                                <td>{{ item.get('waktu_dilayani', '-') }}</td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+        </div>
+
+    </div>
+
+    <!-- ================= RESET ================= -->
+
+    <section class="reset-area">
+
+        <form
+            action="/reset"
+            method="POST"
+            onsubmit="return confirm('Reset seluruh data?')"
+        >
+
+            <button class="btn-reset">
+                Reset Simulasi
             </button>
+
         </form>
 
-        {% if antrian %}
-            <ol class="queue-list">
-                {% for item in antrian %}
-                <li {% if loop.first %}class="next"{% endif %}>
-                    <span class="nomor">{{ item.nomor_antrian }}</span>
-                    <span class="nama">{{ item.nama_pelanggan }}</span>
-                    {% if loop.first %}<span class="tag">← dipanggil berikutnya</span>{% endif %}
-                </li>
-                {% endfor %}
-            </ol>
-        {% else %}
-            <p class="empty">Antrian kosong</p>
-        {% endif %}
     </section>
 
-    <!-- Riwayat Pelayanan — Linked List -->
-    <section class="card">
-        <h2>Riwayat Pelayanan <span class="badge">Linked List — head→tail</span></h2>
-        {% if riwayat %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>No. Antrian</th>
-                        <th>Nama</th>
-                        <th>Waktu Dilayani</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in riwayat %}
-                    <tr>
-                        <td>{{ item.nomor_antrian }}</td>
-                        <td>{{ item.nama_pelanggan }}</td>
-                        <td>{{ item.get('waktu_dilayani', '-') }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="empty">Belum ada riwayat pelayanan</p>
-        {% endif %}
-    </section>
+</main>
 
-    <!-- Reset -->
-    <section class="card card-reset">
-        <form action="/reset" method="POST"
-              onsubmit="return confirm('Reset semua data simulasi?')">
-            <button type="submit" class="btn-reset">Reset Simulasi</button>
-        </form>
-    </section>
-</div>
+<script>
+
+function updateClock() {
+
+    const now = new Date();
+
+    document.getElementById("clock").innerHTML =
+        now.toLocaleTimeString("id-ID");
+
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+</script>
+
 </body>
 </html>
